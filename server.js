@@ -128,6 +128,49 @@ app.get('/generate-pdf', (req, res) => {
 });
 
 // 🚀 서버 시작
+// 📝 Q&A 로그 페이지
+app.get('/log', async (req, res) => {
+  const { data, error } = await supabase
+    .from('user_queries')  // 👈 테이블 이름
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("❌ Supabase fetch error:", error.message);
+    return res.send("⚠️ Q&A 기록을 불러오는 데 실패했습니다.");
+  }
+
+  const rows = data.map(row => `
+    <tr>
+      <td>${new Date(row.created_at).toLocaleString()}</td>
+      <td>${row.message}</td>
+      <td>${row.reply}</td>
+    </tr>
+  `).join('');
+
+  res.send(`
+    <html lang="ko">
+      <head>
+        <meta charset="UTF-8">
+        <title>Q&A 로그</title>
+      </head>
+      <body>
+        <h1>💬 GPT 질문 & 답변 로그</h1>
+        <table border="1" cellpadding="8">
+          <thead>
+            <tr><th>날짜</th><th>질문</th><th>답변</th></tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+        <br />
+        <a href="/">← 메인으로</a>
+      </body>
+    </html>
+  `);
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
