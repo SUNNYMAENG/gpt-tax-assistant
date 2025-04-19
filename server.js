@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 // 📦 post 요청 데이터 파싱
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // 🌐 정적 파일 서빙 (index.html 포함)
 app.use(express.static(path.join(__dirname, 'public')));
