@@ -99,6 +99,30 @@ app.post('/chat', async (req, res) => {
 app.get('/chat', (req, res) => {
   res.redirect('/');
 });
+
+const PDFDocument = require('pdfkit');
+
+// 📄 PDF 생성 라우트
+app.get('/generate-pdf', (req, res) => {
+  const doc = new PDFDocument();
+  const filename = 'tax-summary.pdf';
+  
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/pdf');
+
+  doc.pipe(res);
+
+  // PDF 내용 예시
+  doc.fontSize(20).text('GPT 세무 비서 요약 리포트', { align: 'center' });
+  doc.moveDown();
+  doc.fontSize(12).text(`날짜: ${new Date().toLocaleDateString()}`);
+  doc.moveDown();
+  doc.text('이 문서는 테스트용으로 생성된 세무 요약 리포트입니다.');
+  doc.text('향후 실제 세무 계산 결과를 기반으로 자동 생성될 예정입니다.');
+
+  doc.end();
+});
+
 // 🚀 서버 시작
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
