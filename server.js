@@ -95,7 +95,10 @@ app.post('/chat', async (req, res) => {
     res.send("⚠️ GPT 응답에 실패했습니다. 다시 시도해주세요.");
   }
 });
-
+// 🪄 보너스: GET 요청이 들어오면 홈으로 리디렉션
+app.get('/chat', (req, res) => {
+  res.redirect('/');
+});
 // 🚀 서버 시작
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
