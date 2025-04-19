@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { supabase } = require('./utils/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
