@@ -1,13 +1,16 @@
 {
   "name": "gpt-tax-assistant",
   "version": "1.0.0",
-  "description": "GPT \uae30\ubc18 \uc138\ubb34 \ube44\uc11c \uc11c\ube44\uc2a4",
+  "description": "GPT 기반 세무 비서 서비스",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "dotenv": "^16.0.0",
+    "axios": "^1.4.0",
+    "body-parser": "^1.20.2"
   }
 }
