@@ -52,26 +52,35 @@ app.post('/chat', async (req, res) => {
           <script>
             const lang = navigator.language || navigator.userLanguage;
             const i18n = {
-              ko: {
-                title: "GPT 세무 비서 응답",
-                back: "← 돌아가기",
-                q: "질문:",
-                a: "답변:"
-              },
-              ja: {
-                title: "GPT税務アシスタントの応答",
-                back: "← 戻る",
-                q: "質問：",
-                a: "回答："
-              },
-              en: {
-                title: "GPT Tax Assistant Response",
-                back: "← Back",
-                q: "Question:",
-                a: "Answer:"
-              }
-            };
-            const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("ko") ? "ko" : "en";
+  ko: {
+    title: "GPT 세무 비서 응답",
+    back: "← 돌아가기",
+    q: "질문:",
+    a: "답변:"
+  },
+  ja: {
+    title: "GPT税務アシスタントの応答",
+    back: "← 戻る",
+    q: "質問：",
+    a: "回答："
+  },
+  zh: {
+    title: "GPT 税务助理的回答",
+    back: "← 返回",
+    q: "问题：",
+    a: "回答："
+  },
+  en: {
+    title: "GPT Tax Assistant Response",
+    back: "← Back",
+    q: "Question:",
+    a: "Answer:"
+  }
+};
+
+            const currentLang = lang.startsWith("ja") ? "ja" :
+                    lang.startsWith("ko") ? "ko" :
+                    lang.startsWith("zh") ? "zh" : "en";
             const t = i18n[currentLang];
             document.getElementById("title").textContent = t.title;
             document.getElementById("q").textContent = t.q;
