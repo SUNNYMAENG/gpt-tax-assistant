@@ -6,4 +6,4 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-module.exports = supabase;
+module.exports = { supabase };
