@@ -6,10 +6,16 @@
 </head>
 <body>
   <h1 id="title">GPT 세무 비서에 질문해보세요</h1>
+
   <form method="POST" action="/chat">
     <label for="userMessage" id="label">질문:</label>
     <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required />
     <button type="submit" id="button">질문 보내기</button>
+  </form>
+
+  <!-- 📄 PDF 다운로드 버튼 -->
+  <form method="GET" action="/generate-pdf">
+    <button type="submit" id="pdf-button">요약 PDF 받기</button>
   </form>
 
   <script>
@@ -19,22 +25,26 @@
       ko: {
         title: "GPT 세무 비서에 질문해보세요",
         label: "질문:",
-        button: "질문 보내기"
+        button: "질문 보내기",
+        pdf: "요약 PDF 받기"
       },
       ja: {
         title: "GPT税務アシスタントに質問してみてください",
         label: "質問：",
-        button: "送信"
+        button: "送信",
+        pdf: "PDFをダウンロード"
       },
       zh: {
         title: "向 GPT 税务助理提问",
         label: "问题：",
-        button: "发送问题"
+        button: "发送问题",
+        pdf: "下载PDF总结"
       },
       en: {
         title: "Ask the GPT Tax Assistant",
         label: "Question:",
-        button: "Send"
+        button: "Send",
+        pdf: "Download PDF"
       }
     };
 
@@ -46,6 +56,8 @@
     document.getElementById("title").textContent = t.title;
     document.getElementById("label").textContent = t.label;
     document.getElementById("button").textContent = t.button;
+    document.getElementById("pdf-button").textContent = t.pdf;
   </script>
 </body>
 </html>
+
