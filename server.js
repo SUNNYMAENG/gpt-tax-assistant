@@ -37,6 +37,9 @@ app.post('/chat', async (req, res) => {
     );
 
     const gptReply = response.data.choices[0].message.content;
+await supabase
+  .from('user_queries')  
+  .insert([{ message: userMessage, reply: gptReply }]);
 
     res.send(`
       <html lang="ko">
