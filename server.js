@@ -1,3 +1,5 @@
+const axios = require('axios');
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -11,26 +13,46 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // 🌐 정적 파일 서빙 (index.html 포함)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🤖 질문 처리 라우터
-app.post('/chat', (req, res) => {
+app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
   console.log("📨 사용자 질문:", userMessage);
 
-  // 예시 응답
-  const answer = `"${userMessage}"에 대한 GPT 세무 비서의 답변입니다. (예시 답변)`;
+  const apiKey = process.env.OPENAI_API_KEY;
 
-  res.send(`
-    <html>
-      <head><meta charset="UTF-8"><title>답변</title></head>
-      <body>
-        <h1>GPT 세무 비서 응답</h1>
-        <p><strong>질문:</strong> ${userMessage}</p>
-        <p><strong>답변:</strong> ${answer}</p>
-        <a href="/">← 돌아가기</a>
-      </body>
-    </html>
-  `);
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: userMessage }],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+      }
+    );
+
+    const gptReply = response.data.choices[0].message.content;
+
+    res.send(`
+      <html>
+        <head><meta charset="UTF-8"><title>답변</title></head>
+        <body>
+          <h1>GPT 세무 비서 응답</h1>
+          <p><strong>질문:</strong> ${userMessage}</p>
+          <p><strong>답변:</strong> ${gptReply}</p>
+          <a href="/">← 돌아가기</a>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error("❌ GPT 응답 오류:", error.message);
+    res.send("⚠️ GPT 응답에 실패했습니다. 다시 시도해주세요.");
+  }
 });
+
 
 // 🚀 서버 시작
 app.listen(PORT, () => {
