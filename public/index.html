@@ -5,11 +5,40 @@
   <title>GPT 세무 비서</title>
 </head>
 <body>
-  <h1>GPT 세무 비서에 질문해보세요</h1>
+  <h1 id="title">GPT 세무 비서에 질문해보세요</h1>
   <form method="POST" action="/chat">
-    <input type="text" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required />
-    <button type="submit">질문 보내기</button>
+    <label for="userMessage" id="label">질문:</label>
+    <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required />
+    <button type="submit" id="button">질문 보내기</button>
   </form>
+
+  <script>
+    const lang = navigator.language || navigator.userLanguage;
+
+    const i18n = {
+      ko: {
+        title: "GPT 세무 비서에 질문해보세요",
+        label: "질문:",
+        button: "질문 보내기"
+      },
+      ja: {
+        title: "GPT税務アシスタントに質問してみてください",
+        label: "質問：",
+        button: "送信"
+      },
+      en: {
+        title: "Ask the GPT Tax Assistant",
+        label: "Question:",
+        button: "Send"
+      }
+    };
+
+    const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("ko") ? "ko" : "en";
+    const t = i18n[currentLang];
+
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("label").textContent = t.label;
+    document.getElementById("button").textContent = t.button;
+  </script>
 </body>
 </html>
-// public/index.html - 예시 코드입니다.
