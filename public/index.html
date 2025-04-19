@@ -26,6 +26,11 @@
         label: "質問：",
         button: "送信"
       },
+      zh: {
+        title: "向 GPT 税务助理提问",
+        label: "问题：",
+        button: "发送问题"
+      },
       en: {
         title: "Ask the GPT Tax Assistant",
         label: "Question:",
@@ -33,9 +38,11 @@
       }
     };
 
-    const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("ko") ? "ko" : "en";
-    const t = i18n[currentLang];
+    const currentLang = lang.startsWith("ja") ? "ja" :
+                        lang.startsWith("ko") ? "ko" :
+                        lang.startsWith("zh") ? "zh" : "en";
 
+    const t = i18n[currentLang];
     document.getElementById("title").textContent = t.title;
     document.getElementById("label").textContent = t.label;
     document.getElementById("button").textContent = t.button;
