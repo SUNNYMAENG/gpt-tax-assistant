@@ -7,11 +7,10 @@
 <body>
   <h1 id="title">GPT 세무 비서에 질문해보세요</h1>
 
-  <form method="POST" action="/chat">
-    <label for="userMessage" id="label">질문:</label>
-    <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required />
-    <button type="submit" id="button">질문 보내기</button>
-  </form>
+  <!-- ✅ form 대신 fetch로 -->
+  <label for="userMessage" id="label">질문:</label>
+  <input type="text" id="userMessage" placeholder="세금 관련 질문을 입력하세요" required />
+  <button type="button" id="button">질문 보내기</button>
 
   <!-- 📄 PDF 다운로드 버튼 -->
   <form method="GET" action="/generate-pdf">
@@ -57,7 +56,22 @@
     document.getElementById("label").textContent = t.label;
     document.getElementById("button").textContent = t.button;
     document.getElementById("pdf-button").textContent = t.pdf;
+
+    // ✅ fetch 로직
+    document.getElementById('button').addEventListener('click', async () => {
+      const message = document.getElementById('userMessage').value;
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userMessage: message })
+      });
+
+      const html = await response.text();
+      document.open();
+      document.write(html);
+      document.close();
+    });
   </script>
 </body>
 </html>
-
