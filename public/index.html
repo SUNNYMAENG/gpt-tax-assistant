@@ -18,18 +18,6 @@
           class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full">질문 보내기</button>
       </div>
 
-      <div class="flex justify-center space-x-4 mt-6">
-        <form method="GET" action="/generate-pdf">
-          <button type="submit" id="pdf-button"
-            class="px-4 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300">📄 PDF 받기</button>
-        </form>
-        <form method="GET" action="/generate-csv">
-          <button type="submit" id="csv-button"
-            class="px-4 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300">📊 엑셀(CSV) 받기</button>
-        </form>
-      </div>
-    </div>
-
     <script>
       const lang = navigator.language || navigator.userLanguage;
       const i18n = {
