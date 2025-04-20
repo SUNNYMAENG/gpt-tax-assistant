@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { supabase } = require('./utils/supabase');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ✅ GPT 질문 응답
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
   console.log("📨 사용자 질문:", userMessage);
@@ -50,11 +52,15 @@ app.post('/chat', async (req, res) => {
         <body class="bg-gray-100 text-gray-900 font-sans p-6">
           <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
             <h1 id="title" class="text-2xl font-bold mb-4 text-center">GPT 세무 비서 응답</h1>
+
             <form method="POST" action="/chat" class="mb-6">
               <label for="userMessage" id="q" class="block text-sm font-semibold text-gray-700 mb-2">세금 질문하기</label>
-              <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
-              <button type="submit" id="button" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">질문 보내기</button>
+              <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required
+                class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+              <button type="submit" id="button"
+                class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">질문 보내기</button>
             </form>
+
             <div class="mb-6">
               <p class="text-sm font-semibold text-gray-700">당신의 마지막 질문</p>
               <p class="mt-1 p-3 bg-gray-100 rounded-md whitespace-pre-wrap">${userMessage}</p>
@@ -63,10 +69,14 @@ app.post('/chat', async (req, res) => {
               <p class="text-sm font-semibold text-gray-700" id="a">GPT의 답변</p>
               <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
             </div>
-            <div class="text-center">
-              <a id="back" href="/" class="text-blue-600 hover:underline">← 메인으로 돌아가기</a>
+
+            <div class="text-center space-x-4 mt-6">
+              <a id="back" href="/" class="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">← 메인으로 돌아가기</a>
+              <a href="/generate-pdf" class="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">📄 PDF 다운로드</a>
+              <a href="/generate-csv" class="inline-block px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">📊 엑셀 다운로드</a>
             </div>
           </div>
+
           <script>
             const lang = navigator.language || navigator.userLanguage;
             const i18n = {
@@ -93,12 +103,12 @@ app.post('/chat', async (req, res) => {
   }
 });
 
+// GET → 홈 리디렉션
 app.get('/chat', (req, res) => {
   res.redirect('/');
 });
 
-const PDFDocument = require('pdfkit');
-
+// ✅ PDF 다운로드
 app.get('/generate-pdf', (req, res) => {
   const doc = new PDFDocument();
   const filename = 'tax-summary.pdf';
@@ -117,6 +127,34 @@ app.get('/generate-pdf', (req, res) => {
   doc.end();
 });
 
+// ✅ 엑셀(CSV) 다운로드
+app.get('/generate-csv', async (req, res) => {
+  const { data, error } = await supabase
+    .from('user_queries')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("❌ CSV 생성 오류:", error.message);
+    return res.send("⚠️ CSV 파일을 생성할 수 없습니다.");
+  }
+
+  const csvRows = [
+    ['날짜', '질문', '답변'],
+    ...data.map(row => [
+      new Date(row.created_at).toLocaleString(),
+      row.message.replace(/"/g, '""'),
+      row.reply.replace(/"/g, '""')
+    ])
+  ];
+
+  const csv = csvRows.map(row => `"${row.join('","')}"`).join('\n');
+  res.setHeader('Content-Disposition', 'attachment; filename="chat_log.csv"');
+  res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+  res.send('\uFEFF' + csv); // BOM 추가
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
+
