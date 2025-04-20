@@ -8,17 +8,13 @@ const { supabase } = require('./utils/supabase');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 📦 post 요청 데이터 파싱
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-// 🌐 정적 파일 서빙 (index.html 포함)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🤖 GPT 응답 라우팅 (다국어 대응)
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
-  console.log("📨 사용자 질문:", userMessage);
+  console.log("\uD83D\uDCEC \uC0AC\uC6A9\uC790 \uC9C8\uBB38:", userMessage);
 
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -38,98 +34,74 @@ app.post('/chat', async (req, res) => {
     );
 
     const gptReply = response.data.choices[0].message.content;
-await supabase
-  .from('user_queries')  
-  .insert([{ message: userMessage, reply: gptReply }]);
+    await supabase
+      .from('user_queries')
+      .insert([{ message: userMessage, reply: gptReply }]);
 
-res.send(`
-  <!DOCTYPE html>
-  <html lang="ko">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>GPT Tax Assistant</title>
-      <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-gray-100 text-gray-900 font-sans p-6">
-      <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 id="title" class="text-2xl font-bold mb-4 text-center">GPT 세무 비서 응답</h1>
-        <div class="mb-4">
-          <p class="text-sm font-semibold text-gray-700" id="q">질문:</p>
-          <p class="mt-1 p-3 bg-gray-100 rounded-md">${userMessage}</p>
-        </div>
-        <div class="mb-6">
-          <p class="text-sm font-semibold text-gray-700" id="a">답변:</p>
-          <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
-        </div>
-        <div class="text-center">
-          <a id="back" href="/" class="text-blue-600 hover:underline">← 돌아가기</a>
-        </div>
-      </div>
-      <script>
-        const lang = navigator.language || navigator.userLanguage;
-        const i18n = {
-          ko: {
-            title: "GPT 세무 비서 응답",
-            back: "← 돌아가기",
-            q: "질문:",
-            a: "답변:"
-          },
-          ja: {
-            title: "GPT税務アシスタントの応答",
-            back: "← 戻る",
-            q: "質問：",
-            a: "回答："
-          },
-          zh: {
-            title: "GPT 税务助理的回答",
-            back: "← 返回",
-            q: "问题：",
-            a: "回答："
-          },
-          en: {
-            title: "GPT Tax Assistant Response",
-            back: "← Back",
-            q: "Question:",
-            a: "Answer:"
-          }
-        };
-        const currentLang = lang.startsWith("ja") ? "ja" :
-                            lang.startsWith("ko") ? "ko" :
-                            lang.startsWith("zh") ? "zh" : "en";
-        const t = i18n[currentLang];
-        document.getElementById("title").textContent = t.title;
-        document.getElementById("q").textContent = t.q;
-        document.getElementById("a").textContent = t.a;
-        document.getElementById("back").textContent = t.back;
-      </script>
-    </body>
-  </html>
-`);
-
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="ko">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>GPT Tax Assistant</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-gray-100 text-gray-900 font-sans p-6">
+          <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+            <h1 id="title" class="text-2xl font-bold mb-4 text-center">GPT 세무 비서 응답</h1>
+            <form method="POST" action="/chat" class="mb-6">
+              <label for="userMessage" id="q" class="block text-sm font-semibold text-gray-700 mb-2">질문:</label>
+              <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+              <button type="submit" id="button" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">질문 보내기</button>
+            </form>
+            <div class="mb-6">
+              <p class="text-sm font-semibold text-gray-700" id="a">답변:</p>
+              <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
+            </div>
+            <div class="text-center">
+              <a id="back" href="/" class="text-blue-600 hover:underline">← 돌아가기</a>
+            </div>
+          </div>
+          <script>
+            const lang = navigator.language || navigator.userLanguage;
+            const i18n = {
+              ko: { title: "GPT 세무 비서 응답", back: "← 돌아가기", q: "질문:", a: "답변:", button: "질문 보내기" },
+              ja: { title: "GPT税務アシスタントの応答", back: "← 戻る", q: "質問：", a: "回答：", button: "送信" },
+              zh: { title: "GPT 税务助理的回答", back: "← 返回", q: "问题：", a: "回答：", button: "发送" },
+              en: { title: "GPT Tax Assistant Response", back: "← Back", q: "Question:", a: "Answer:", button: "Send" },
+            };
+            const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("ko") ? "ko" : lang.startsWith("zh") ? "zh" : "en";
+            const t = i18n[currentLang];
+            document.getElementById("title").textContent = t.title;
+            document.getElementById("q").textContent = t.q;
+            document.getElementById("a").textContent = t.a;
+            document.getElementById("back").textContent = t.back;
+            document.getElementById("button").textContent = t.button;
+          </script>
+        </body>
+      </html>
+    `);
   } catch (error) {
     console.error("❌ GPT 응답 오류:", error.message);
     res.send("⚠️ GPT 응답에 실패했습니다. 다시 시도해주세요.");
   }
 });
-// 🪄 보너스: GET 요청이 들어오면 홈으로 리디렉션
+
 app.get('/chat', (req, res) => {
   res.redirect('/');
 });
 
 const PDFDocument = require('pdfkit');
 
-// 📄 PDF 생성 라우트
 app.get('/generate-pdf', (req, res) => {
   const doc = new PDFDocument();
   const filename = 'tax-summary.pdf';
-  
+
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'application/pdf');
 
   doc.pipe(res);
-
-  // PDF 내용 예시
   doc.fontSize(20).text('GPT 세무 비서 요약 리포트', { align: 'center' });
   doc.moveDown();
   doc.fontSize(12).text(`날짜: ${new Date().toLocaleDateString()}`);
@@ -140,75 +112,6 @@ app.get('/generate-pdf', (req, res) => {
   doc.end();
 });
 
-// 🚀 서버 시작
-// 📝 Q&A 로그 페이지
-// 📝 Q&A 로그 페이지
-app.get('/log', async (req, res) => {
-  const { data, error } = await supabase
-    .from('user_queries')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error("❌ Supabase fetch error:", error.message);
-    return res.send("⚠️ Q&A 기록을 불러오는 데 실패했습니다.");
-  }
-
-  const rows = data.map(row => `
-    <tr class="hover:bg-gray-100 border-b">
-      <td class="p-3 text-sm text-gray-700 whitespace-nowrap">${new Date(row.created_at).toLocaleString()}</td>
-     <td class="p-3 text-sm text-gray-800 whitespace-normal break-words">${row.message}</td>
-<td class="p-3 text-sm text-gray-800 whitespace-normal break-words">${row.reply}</td>
-
-    </tr>
-  `).join('');
-
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="ko">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Q&A 로그</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body class="bg-gray-50 font-sans text-gray-900">
-        <div class="max-w-6xl mx-auto p-6">
-          <h1 id="title" class="text-2xl font-bold mb-6">GPT 질문 & 답변 로그</h1>
-          <div class="overflow-x-auto bg-white rounded-lg shadow">
-            <table class="min-w-full">
-              <thead class="bg-gray-200">
-                <tr>
-                  <th class="p-3 text-left text-sm font-medium text-gray-700">날짜</th>
-                  <th class="p-3 text-left text-sm font-medium text-gray-700">질문</th>
-                  <th class="p-3 text-left text-sm font-medium text-gray-700">답변</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows}
-              </tbody>
-            </table>
-          </div>
-          <div class="mt-6 text-center">
-            <a href="/" class="text-blue-600 hover:underline">← 메인으로 돌아가기</a>
-          </div>
-        </div>
-        <script>
-          const lang = navigator.language || navigator.userLanguage;
-          const titleMap = {
-            ko: "GPT 질문 & 답변 로그",
-            ja: "GPT 質問と回答ログ",
-            en: "GPT Q&A Log"
-          };
-          const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("en") ? "en" : "ko";
-          document.getElementById("title").textContent = titleMap[currentLang];
-        </script>
-      </body>
-    </html>
-  `);
-});
-
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
-
