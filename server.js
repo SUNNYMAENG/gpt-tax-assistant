@@ -4,8 +4,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
-const { supabase } = require('./utils/supabase');
 const PDFDocument = require('pdfkit');
+const { supabase } = require('./utils/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,7 +36,6 @@ app.post('/chat', async (req, res) => {
     );
 
     const gptReply = response.data.choices[0].message.content;
-
     await supabase
       .from('user_queries')
       .insert([{ message: userMessage, reply: gptReply }]);
@@ -105,27 +104,31 @@ app.get('/chat', (req, res) => {
 app.get('/generate-pdf', (req, res) => {
   const doc = new PDFDocument();
   const filename = 'tax-summary.pdf';
+  const fontDir = path.join(__dirname, 'public', 'fonts');
 
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'application/pdf');
 
   doc.pipe(res);
 
-  // 💡 업로드한 경로에 맞게 폰트 등록
-  doc.registerFont('NotoKR', path.join(__dirname, 'utils', 'NotoSansKR-VariableFont_wdth,wght.ttf'));
-  doc.registerFont('NotoJP', path.join(__dirname, 'utils', 'NotoSansJP-VariableFont_wdth,wght.ttf'));
-  doc.registerFont('Roboto', path.join(__dirname, 'utils', 'Roboto-VariableFont_wdth,wght.ttf'));
+  const lang = req.headers['accept-language'] || 'en';
+  let fontPath = path.join(fontDir, 'Roboto-VariableFont_wdth,wght.ttf');
 
-  // 기본 한글 폰트로 설정
-  doc.font('NotoKR');
+  if (lang.startsWith('ko')) {
+    fontPath = path.join(fontDir, 'NotoSansKR-VariableFont_wght.ttf');
+  } else if (lang.startsWith('ja')) {
+    fontPath = path.join(fontDir, 'NotoSansJP-VariableFont_wght.ttf');
+  } else if (lang.startsWith('zh')) {
+    fontPath = path.join(fontDir, 'NotoSansSC-VariableFont_wght.ttf');
+  }
 
+  doc.font(fontPath);
   doc.fontSize(20).text('GPT 세무 비서 요약 리포트', { align: 'center' });
   doc.moveDown();
   doc.fontSize(12).text(`날짜: ${new Date().toLocaleDateString()}`);
   doc.moveDown();
   doc.text('이 문서는 테스트용으로 생성된 세무 요약 리포트입니다.');
   doc.text('향후 실제 세무 계산 결과를 기반으로 자동 생성될 예정입니다.');
-
   doc.end();
 });
 
