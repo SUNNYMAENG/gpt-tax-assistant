@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
-  console.log("\uD83D\uDCEC \uC0AC\uC6A9\uC790 \uC9C8\uBB38:", userMessage);
+  console.log("\uD83D\uDCEC 사용자 질문:", userMessage);
 
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -55,6 +55,10 @@ app.post('/chat', async (req, res) => {
               <input type="text" id="userMessage" name="userMessage" placeholder="세금 관련 질문을 입력하세요" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
               <button type="submit" id="button" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">질문 보내기</button>
             </form>
+            <div class="mb-6">
+              <p class="text-sm font-semibold text-gray-700">이전 질문:</p>
+              <p class="mt-1 p-3 bg-gray-100 rounded-md whitespace-pre-wrap">${userMessage}</p>
+            </div>
             <div class="mb-6">
               <p class="text-sm font-semibold text-gray-700" id="a">답변:</p>
               <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
