@@ -31,9 +31,7 @@
       document.getElementById("title").textContent = t.title;
       document.getElementById("label").textContent = t.label;
       document.getElementById("button").textContent = t.button;
-      document.getElementById("pdf-button").textContent = `📄 ${t.pdf}`;
-      document.getElementById("csv-button").textContent = `📊 ${t.csv}`;
-
+      
       // fetch로 POST 전송
       document.getElementById('button').addEventListener('click', async () => {
         const message = document.getElementById('userMessage').value;
