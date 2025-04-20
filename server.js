@@ -108,21 +108,21 @@ app.get('/generate-pdf', (req, res) => {
 
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'application/pdf');
-
   doc.pipe(res);
 
+  // ✅ registerFont 적용
+  doc.registerFont('kr', path.join(fontDir, 'NotoSansKR-VariableFont_wght.ttf'));
+  doc.registerFont('jp', path.join(fontDir, 'NotoSansJP-VariableFont_wght.ttf'));
+  doc.registerFont('zh', path.join(fontDir, 'NotoSansSC-VariableFont_wght.ttf'));
+  doc.registerFont('en', path.join(fontDir, 'Roboto-VariableFont_wdth,wght.ttf'));
+
   const lang = req.headers['accept-language'] || 'en';
-  let fontPath = path.join(fontDir, 'Roboto-VariableFont_wdth,wght.ttf');
+  let fontName = 'en';
+  if (lang.startsWith('ko')) fontName = 'kr';
+  else if (lang.startsWith('ja')) fontName = 'jp';
+  else if (lang.startsWith('zh')) fontName = 'zh';
 
-  if (lang.startsWith('ko')) {
-    fontPath = path.join(fontDir, 'NotoSansKR-VariableFont_wght.ttf');
-  } else if (lang.startsWith('ja')) {
-    fontPath = path.join(fontDir, 'NotoSansJP-VariableFont_wght.ttf');
-  } else if (lang.startsWith('zh')) {
-    fontPath = path.join(fontDir, 'NotoSansSC-VariableFont_wght.ttf');
-  }
-
-  doc.font(fontPath);
+  doc.font(fontName);
   doc.fontSize(20).text('GPT 세무 비서 요약 리포트', { align: 'center' });
   doc.moveDown();
   doc.fontSize(12).text(`날짜: ${new Date().toLocaleDateString()}`);
