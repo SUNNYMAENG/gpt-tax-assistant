@@ -42,59 +42,71 @@ await supabase
   .from('user_queries')  
   .insert([{ message: userMessage, reply: gptReply }]);
 
-    res.send(`
-      <html lang="ko">
-        <head>
-          <meta charset="UTF-8">
-          <title>GPT Tax Assistant</title>
-        </head>
-        <body>
-          <h1 id="title">GPT 세무 비서 응답</h1>
-          <p><strong id="q">질문:</strong> ${userMessage}</p>
-          <p><strong id="a">답변:</strong> ${gptReply}</p>
-          <a id="back" href="/">← 돌아가기</a>
+res.send(`
+  <!DOCTYPE html>
+  <html lang="ko">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>GPT Tax Assistant</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 text-gray-900 font-sans p-6">
+      <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 id="title" class="text-2xl font-bold mb-4 text-center">GPT 세무 비서 응답</h1>
+        <div class="mb-4">
+          <p class="text-sm font-semibold text-gray-700" id="q">질문:</p>
+          <p class="mt-1 p-3 bg-gray-100 rounded-md">${userMessage}</p>
+        </div>
+        <div class="mb-6">
+          <p class="text-sm font-semibold text-gray-700" id="a">답변:</p>
+          <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
+        </div>
+        <div class="text-center">
+          <a id="back" href="/" class="text-blue-600 hover:underline">← 돌아가기</a>
+        </div>
+      </div>
+      <script>
+        const lang = navigator.language || navigator.userLanguage;
+        const i18n = {
+          ko: {
+            title: "GPT 세무 비서 응답",
+            back: "← 돌아가기",
+            q: "질문:",
+            a: "답변:"
+          },
+          ja: {
+            title: "GPT税務アシスタントの応答",
+            back: "← 戻る",
+            q: "質問：",
+            a: "回答："
+          },
+          zh: {
+            title: "GPT 税务助理的回答",
+            back: "← 返回",
+            q: "问题：",
+            a: "回答："
+          },
+          en: {
+            title: "GPT Tax Assistant Response",
+            back: "← Back",
+            q: "Question:",
+            a: "Answer:"
+          }
+        };
+        const currentLang = lang.startsWith("ja") ? "ja" :
+                            lang.startsWith("ko") ? "ko" :
+                            lang.startsWith("zh") ? "zh" : "en";
+        const t = i18n[currentLang];
+        document.getElementById("title").textContent = t.title;
+        document.getElementById("q").textContent = t.q;
+        document.getElementById("a").textContent = t.a;
+        document.getElementById("back").textContent = t.back;
+      </script>
+    </body>
+  </html>
+`);
 
-          <script>
-            const lang = navigator.language || navigator.userLanguage;
-            const i18n = {
-  ko: {
-    title: "GPT 세무 비서 응답",
-    back: "← 돌아가기",
-    q: "질문:",
-    a: "답변:"
-  },
-  ja: {
-    title: "GPT税務アシスタントの応答",
-    back: "← 戻る",
-    q: "質問：",
-    a: "回答："
-  },
-  zh: {
-    title: "GPT 税务助理的回答",
-    back: "← 返回",
-    q: "问题：",
-    a: "回答："
-  },
-  en: {
-    title: "GPT Tax Assistant Response",
-    back: "← Back",
-    q: "Question:",
-    a: "Answer:"
-  }
-};
-
-            const currentLang = lang.startsWith("ja") ? "ja" :
-                    lang.startsWith("ko") ? "ko" :
-                    lang.startsWith("zh") ? "zh" : "en";
-            const t = i18n[currentLang];
-            document.getElementById("title").textContent = t.title;
-            document.getElementById("q").textContent = t.q;
-            document.getElementById("a").textContent = t.a;
-            document.getElementById("back").textContent = t.back;
-          </script>
-        </body>
-      </html>
-    `);
   } catch (error) {
     console.error("❌ GPT 응답 오류:", error.message);
     res.send("⚠️ GPT 응답에 실패했습니다. 다시 시도해주세요.");
