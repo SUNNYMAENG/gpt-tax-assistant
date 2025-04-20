@@ -130,9 +130,10 @@ app.get('/generate-pdf', (req, res) => {
 
 // 🚀 서버 시작
 // 📝 Q&A 로그 페이지
+// 📝 Q&A 로그 페이지
 app.get('/log', async (req, res) => {
   const { data, error } = await supabase
-    .from('user_queries')  // 👈 테이블 이름
+    .from('user_queries')
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -142,31 +143,53 @@ app.get('/log', async (req, res) => {
   }
 
   const rows = data.map(row => `
-    <tr>
-      <td>${new Date(row.created_at).toLocaleString()}</td>
-      <td>${row.message}</td>
-      <td>${row.reply}</td>
+    <tr class="hover:bg-gray-100 border-b">
+      <td class="p-3 text-sm text-gray-700 whitespace-nowrap">${new Date(row.created_at).toLocaleString()}</td>
+      <td class="p-3 text-sm text-gray-800 max-w-xs truncate">${row.message}</td>
+      <td class="p-3 text-sm text-gray-800 max-w-xs truncate">${row.reply}</td>
     </tr>
   `).join('');
 
   res.send(`
+    <!DOCTYPE html>
     <html lang="ko">
       <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Q&A 로그</title>
+        <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body>
-        <h1>💬 GPT 질문 & 답변 로그</h1>
-        <table border="1" cellpadding="8">
-          <thead>
-            <tr><th>날짜</th><th>질문</th><th>답변</th></tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
-        <br />
-        <a href="/">← 메인으로</a>
+      <body class="bg-gray-50 font-sans text-gray-900">
+        <div class="max-w-6xl mx-auto p-6">
+          <h1 id="title" class="text-2xl font-bold mb-6">GPT 질문 & 답변 로그</h1>
+          <div class="overflow-x-auto bg-white rounded-lg shadow">
+            <table class="min-w-full">
+              <thead class="bg-gray-200">
+                <tr>
+                  <th class="p-3 text-left text-sm font-medium text-gray-700">날짜</th>
+                  <th class="p-3 text-left text-sm font-medium text-gray-700">질문</th>
+                  <th class="p-3 text-left text-sm font-medium text-gray-700">답변</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-6 text-center">
+            <a href="/" class="text-blue-600 hover:underline">← 메인으로 돌아가기</a>
+          </div>
+        </div>
+        <script>
+          const lang = navigator.language || navigator.userLanguage;
+          const titleMap = {
+            ko: "GPT 질문 & 답변 로그",
+            ja: "GPT 質問と回答ログ",
+            en: "GPT Q&A Log"
+          };
+          const currentLang = lang.startsWith("ja") ? "ja" : lang.startsWith("en") ? "en" : "ko";
+          document.getElementById("title").textContent = titleMap[currentLang];
+        </script>
       </body>
     </html>
   `);
