@@ -145,8 +145,9 @@ app.get('/log', async (req, res) => {
   const rows = data.map(row => `
     <tr class="hover:bg-gray-100 border-b">
       <td class="p-3 text-sm text-gray-700 whitespace-nowrap">${new Date(row.created_at).toLocaleString()}</td>
-      <td class="p-3 text-sm text-gray-800 max-w-xs truncate">${row.message}</td>
-      <td class="p-3 text-sm text-gray-800 max-w-xs truncate">${row.reply}</td>
+     <td class="p-3 text-sm text-gray-800 whitespace-normal break-words">${row.message}</td>
+<td class="p-3 text-sm text-gray-800 whitespace-normal break-words">${row.reply}</td>
+
     </tr>
   `).join('');
 
