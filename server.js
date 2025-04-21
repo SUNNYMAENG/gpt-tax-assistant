@@ -19,6 +19,8 @@ app.post('/chat', async (req, res) => {
   console.log("📨 사용자 질문:", userMessage);
 
   const apiKey = process.env.OPENAI_API_KEY;
+  let gptReply = '';
+  let deductionSummary = '';
 
   try {
     const response = await axios.post(
@@ -26,7 +28,37 @@ app.post('/chat', async (req, res) => {
       {
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "당신은 일본 실무형 세무비서 챗봇입니다. 사용자의 고용형태, 거주지, 건강보험 여부, 부양가족 유무를 파악한 뒤, 조건에 맞는 정보를 안내하고 자동 계산 또는 서식 생성을 연결합니다." },
+          {
+            role: "system",
+            content: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.
+
+📌 항목별 조건 요구사항:
+- 급여명세서: 고용형태, 거주지, 건강보험 여부, 부양가족 수, 급여액
+- 퇴직금 계산: 고용형태, 입사일, 퇴사일, 마지막 급여
+- 연말정산: 부양가족 수, 보험료 납입 여부, 기부금 여부, 연간 총소득
+- 마이넘버 서식: 고용형태, 외국인 여부, 주민번호 유무
+- 법인세 신고: 결산월, 사업소득, 비용 항목, 세무대리인 유무
+- 부가세 신고: 과세기간, 간이/일반 여부, 매출/매입 내역
+- 원천세 신고: 인건비 지급월, 지급총액, 인원수
+- 소득세 신고: 종합소득 항목, 경비, 각종 공제 여부
+
+❗조건이 부족한 경우에는 다음 예시처럼 질문하세요:
+① 고용형태 (정직원 / 프리랜서 / 외국인)?
+② 일본 거주 여부?
+③ 건강보험 가입 여부?
+④ 부양가족 있음?
+⑤ 과세기간/신고유형/결산월 등 항목별 추가 질문
+
+그 후 가능한 경우 아래 JSON으로 응답하세요:
+{
+  "type": "정직원",
+  "amount": 2500000,
+  "hasHealth": true,
+  "hasPension": true,
+  "hasEmpIns": true,
+  "dependents": 0
+}`
+          },
           { role: "user", content: userMessage }
         ]
       },
@@ -38,10 +70,19 @@ app.post('/chat', async (req, res) => {
       }
     );
 
-    const gptReply = response.data.choices[0].message.content;
-    await supabase
-      .from('user_queries')
-      .insert([{ message: userMessage, reply: gptReply }]);
+    gptReply = response.data.choices[0].message.content;
+    await supabase.from('user_queries').insert([{ message: userMessage, reply: gptReply }]);
+
+    const jsonMatch = gptReply.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      try {
+        const condition = JSON.parse(jsonMatch[0]);
+        const generateResponse = await axios.post('http://localhost:3000/generate', condition);
+        deductionSummary = generateResponse.data.summary;
+      } catch (jsonErr) {
+        console.warn('⚠️ 조건 파싱 실패:', jsonErr.message);
+      }
+    }
 
     res.send(`
       <!DOCTYPE html>
@@ -63,6 +104,10 @@ app.post('/chat', async (req, res) => {
               <p class="text-sm font-semibold text-gray-700">GPT의 응답</p>
               <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
             </div>
+            ${deductionSummary ? `<div class="mb-6">
+              <p class="text-sm font-semibold text-gray-700">실지급액 계산 결과</p>
+              <p class="mt-1 p-3 bg-blue-50 rounded-md whitespace-pre-wrap">${deductionSummary}</p>
+            </div>` : ''}
             <div class="text-center space-x-4 mt-6">
               <a href="/" class="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">← 메인으로 돌아가기</a>
             </div>
@@ -80,7 +125,6 @@ app.get('/chat', (req, res) => {
   res.redirect('/');
 });
 
-// ✅ 급여 계산 API 추가
 app.post('/generate', (req, res) => {
   const { type, amount, hasHealth, hasPension, hasEmpIns, dependents } = req.body;
 
