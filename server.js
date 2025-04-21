@@ -77,7 +77,7 @@ app.post('/chat', async (req, res) => {
     if (jsonMatch) {
       try {
         const condition = JSON.parse(jsonMatch[0]);
-        const generateResponse = await axios.post('http://localhost:3000/generate', condition);
+        const generateResponse = await axios.post('https://gpt-tax-assistant.onrender.com/generate', condition);
         const result = generateResponse.data;
         deductionSummary = `
         <ul class="text-sm leading-6">
