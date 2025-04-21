@@ -25,7 +25,10 @@ app.post('/chat', async (req, res) => {
       'https://api.openai.com/v1/chat/completions',
       {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: userMessage }],
+        messages: [
+          { role: "system", content: "당신은 일본 실무형 세무비서 챗봇입니다. 사용자의 고용형태, 거주지, 건강보험 여부, 부양가족 유무를 파악한 뒤, 조건에 맞는 정보를 안내하고 자동 계산 또는 서식 생성을 연결합니다." },
+          { role: "user", content: userMessage }
+        ]
       },
       {
         headers: {
