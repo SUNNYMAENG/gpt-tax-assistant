@@ -64,7 +64,27 @@ app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
   const lang = detectLang(userMessage);
   const t = i18n[lang];
-  const systemPrompt = systemMessages[lang];
+  const systemPrompt = `${systemMessages[lang]}
+
+以下のチェック項目にユーザーがすべて回答していない場合は、やさしく案内してください：
+1. 雇用形態（例：正社員、フリーランスなど）
+2. 居住地（例：東京、日本国外など）
+3. 社会保険加入状況（加入／未加入）
+4. 扶養家族の有無（あり／なし）
+
+上記のいずれかが不足している場合は、
+「ご入力いただいていない項目があります。より正確な結果をご希望の場合は、以下の情報をご入力ください：...」と案内してください。
+
+それでも条件がすべて揃わない場合は、以下の一般的な仮定で計算を進めてください：
+- 雇用形態：正社員
+- 居住地：東京
+- 社会保険：加入
+- 扶養家族：なし
+
+その上で、以下の形式でJSONを返してください：
+{ type, amount, hasHealth, hasPension, hasEmpIns, dependents }`
+
+条件がすべて揃ったら、以下の形式でJSONを返してください: { type, amount, hasHealth, hasPension, hasEmpIns, dependents }`;
   chatHistory.push({ role: 'user', content: userMessage });
 
   try {
@@ -89,7 +109,7 @@ app.post('/chat', async (req, res) => {
     chatHistory.push({ role: 'assistant', content: gptReply });
     await supabase.from('user_queries').insert([{ message: userMessage, reply: gptReply }]);
 
-    let deductionSummary = '';
+    let deductionSummary = '<p class="text-sm italic text-gray-500">※ 条件が未入力または不完全なため、計算結果はまだ表示されていません。</p>';
     const jsonMatch = gptReply.match(/\{[\s\S]*?\}/);
     if (jsonMatch) {
       try {
@@ -111,10 +131,10 @@ app.post('/chat', async (req, res) => {
     }
 
     const chatHtml = chatHistory.map(msg => {
-      const style = msg.role === 'user' ? 'bg-gray-200 text-left' : 'bg-green-100 text-left';
-      const label = msg.role === 'user' ? t.user : t.gpt;
-      return `<div class="my-2 p-3 rounded ${style}"><strong>${label}:</strong><br>${msg.content}</div>`;
-    }).join('');
+  const style = msg.role === 'user' ? 'bg-gray-200 text-left whitespace-pre-line' : 'bg-green-100 text-left whitespace-pre-line';
+  const label = msg.role === 'user' ? t.user : t.gpt;
+  return `<div class="my-2 p-3 rounded ${style}"><strong>${label}:</strong><br>${msg.content}</div>`;
+}).join('');
 
     res.send(`
       <!DOCTYPE html>
