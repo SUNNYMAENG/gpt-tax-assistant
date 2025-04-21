@@ -7,7 +7,7 @@ function handleGptReply(gptResponse) {
     try {
       const jsonData = JSON.parse(jsonMatch[0]);
 
-      fetch('/generate', {
+      fetch('https://gpt-tax-assistant.onrender.com/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -53,3 +53,4 @@ async function getGptReply(message) {
 
 // 예시 실행 (실제에선 사용자 입력에 따라 호출)
 handleUserMessage("급여대장 만들어줘");
+
