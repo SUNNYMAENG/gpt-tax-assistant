@@ -14,8 +14,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+let chatHistory = [];
+
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
+  chatHistory.push({ role: 'user', content: userMessage });
   console.log("📨 사용자 질문:", userMessage);
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -55,7 +58,7 @@ app.post('/chat', async (req, res) => {
   "dependents": 0
 }`
           },
-          { role: "user", content: userMessage }
+          ...chatHistory
         ]
       },
       {
@@ -67,6 +70,7 @@ app.post('/chat', async (req, res) => {
     );
 
     gptReply = response.data.choices[0].message.content;
+    chatHistory.push({ role: 'assistant', content: gptReply });
     await supabase.from('user_queries').insert([{ message: userMessage, reply: gptReply }]);
 
     const jsonMatch = gptReply.match(/\{[\s\S]*?\}/);
@@ -80,33 +84,29 @@ app.post('/chat', async (req, res) => {
       }
     }
 
+    const chatHtml = chatHistory.map(msg => {
+      const style = msg.role === 'user' ? 'bg-gray-200 text-left' : 'bg-green-100 text-left';
+      return `<div class="my-2 p-3 rounded ${style}"><strong>${msg.role === 'user' ? '🙋‍♂️ 질문' : '🤖 GPT'}:</strong><br>${msg.content}</div>`;
+    }).join('');
+
     res.send(`
       <!DOCTYPE html>
       <html lang="ko">
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>GPT 세무 비서 응답</title>
+          <title>GPT 세무 비서 대화형</title>
           <script src="https://cdn.tailwindcss.com"></script>
         </head>
         <body class="bg-gray-100 text-gray-900 font-sans p-6">
-          <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
-            <h1 class="text-2xl font-bold mb-4 text-center">GPT 세무 비서 응답</h1>
-            <div class="mb-6">
-              <p class="text-sm font-semibold text-gray-700">최근 질문</p>
-              <p class="mt-1 p-3 bg-gray-100 rounded-md whitespace-pre-wrap">${userMessage}</p>
-            </div>
-            <div class="mb-6">
-              <p class="text-sm font-semibold text-gray-700">GPT의 응답</p>
-              <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
-            </div>
-            ${deductionSummary ? `<div class="mb-6">
-              <p class="text-sm font-semibold text-gray-700">계산 결과 요약</p>
-              <p class="mt-1 p-3 bg-blue-50 rounded-md whitespace-pre-wrap">${deductionSummary}</p>
-            </div>` : ''}
-            <div class="text-center space-x-4 mt-6">
-              <a href="/" class="inline-block px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">← 메인으로 돌아가기</a>
-            </div>
+          <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+            <h1 class="text-xl font-bold mb-4 text-center">GPT 세무 비서 (채팅형)</h1>
+            <div class="overflow-y-auto max-h-[500px] mb-6">${chatHtml}</div>
+            ${deductionSummary ? `<div class="mb-6 bg-blue-50 p-3 rounded-md">📊 <strong>계산 결과 요약</strong><br>${deductionSummary}</div>` : ''}
+            <form method="POST" action="/chat" class="flex space-x-2">
+              <input type="text" name="userMessage" placeholder="질문을 입력하세요..." required class="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">전송</button>
+            </form>
           </div>
         </body>
       </html>
