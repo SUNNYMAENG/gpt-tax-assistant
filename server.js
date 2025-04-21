@@ -82,9 +82,8 @@ app.post('/chat', async (req, res) => {
 - 扶養家族：なし
 
 その上で、以下の形式でJSONを返してください：
-{ type, amount, hasHealth, hasPension, hasEmpIns, dependents }`
+{ type, amount, hasHealth, hasPension, hasEmpIns, dependents }`;
 
-条件がすべて揃ったら、以下の形式でJSONを返してください: { type, amount, hasHealth, hasPension, hasEmpIns, dependents }`;
   chatHistory.push({ role: 'user', content: userMessage });
 
   try {
