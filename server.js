@@ -23,7 +23,7 @@ let chatHistory = [];
 const detectLang = (text) => {
   if (/[ぁ-んァ-ン一-龯]/.test(text)) return 'ja';
   if (/[가-힣]/.test(text)) return 'ko';
-  if (/[\u4e00-\u9fa5]/.test(text)) return 'zh';
+  if (/[一-龥]/.test(text)) return 'zh';
   return 'en';
 };
 
@@ -123,6 +123,11 @@ app.post('/chat', async (req, res) => {
     console.error("❌ GPT 오류:", error.message);
     res.send("⚠️ GPT 응답에 실패했습니다. 다시 시도해주세요.");
   }
+});
+
+// ✅ /chat GET 요청 대응 추가
+app.get('/chat', (req, res) => {
+  res.redirect('/');
 });
 
 app.listen(PORT, () => {
