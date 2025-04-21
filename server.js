@@ -16,10 +16,44 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let chatHistory = [];
 
+const i18n = {
+  ko: {
+    title: "GPT 세무 비서 (채팅형)",
+    input: "질문을 입력하세요...",
+    send: "전송",
+    user: "🙋‍♂️ 질문",
+    gpt: "🤖 GPT",
+    summary: "📊 계산 결과 요약",
+    labels: ["지급액", "건강보험", "연금", "고용보험", "소득세", "차감 후 수령액"]
+  },
+  ja: {
+    title: "GPT税務アシスタント（チャット形式）",
+    input: "質問を入力してください...",
+    send: "送信",
+    user: "🙋‍♂️ 質問",
+    gpt: "🤖 GPT",
+    summary: "📊 計算結果の概要",
+    labels: ["支給額", "健康保険", "厚生年金", "雇用保険", "所得税", "差引支給額"]
+  },
+  en: {
+    title: "GPT Tax Assistant (Chat Mode)",
+    input: "Enter your question...",
+    send: "Send",
+    user: "🙋‍♂️ Question",
+    gpt: "🤖 GPT",
+    summary: "📊 Calculation Summary",
+    labels: ["Gross Pay", "Health Insurance", "Pension", "Employment Insurance", "Income Tax", "Net Pay"]
+  }
+};
+
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
   chatHistory.push({ role: 'user', content: userMessage });
   console.log("📨 사용자 질문:", userMessage);
+
+  const lang = req.headers['accept-language'] || 'ko';
+  const currentLang = lang.startsWith('ja') ? 'ja' : lang.startsWith('en') ? 'en' : 'ko';
+  const t = i18n[currentLang];
 
   const apiKey = process.env.OPENAI_API_KEY;
   let gptReply = '';
@@ -77,16 +111,16 @@ app.post('/chat', async (req, res) => {
     if (jsonMatch) {
       try {
         const condition = JSON.parse(jsonMatch[0]);
-        const generateResponse = await axios.post('https://gpt-tax-assistant.onrender.com/generate', condition);
+        const generateResponse = await axios.post('http://localhost:3000/generate', condition);
         const result = generateResponse.data;
         deductionSummary = `
         <ul class="text-sm leading-6">
-          <li>💰 <strong>지급액:</strong> ¥${result.deductions.gross}</li>
-          <li>🩺 건강보험: ¥${result.deductions.health}</li>
-          <li>💼 연금: ¥${result.deductions.pension}</li>
-          <li>🛡️ 고용보험: ¥${result.deductions.empIns}</li>
-          <li>💸 소득세: ¥${result.deductions.tax}</li>
-          <li>✅ <strong>차감 후 수령액:</strong> ¥${result.deductions.net}</li>
+          <li>💰 <strong>${t.labels[0]}:</strong> ¥${result.deductions.gross}</li>
+          <li>🩺 ${t.labels[1]}: ¥${result.deductions.health}</li>
+          <li>💼 ${t.labels[2]}: ¥${result.deductions.pension}</li>
+          <li>🛡️ ${t.labels[3]}: ¥${result.deductions.empIns}</li>
+          <li>💸 ${t.labels[4]}: ¥${result.deductions.tax}</li>
+          <li>✅ <strong>${t.labels[5]}:</strong> ¥${result.deductions.net}</li>
         </ul>`;
       } catch (jsonErr) {
         console.warn('⚠️ 조건 파싱 실패:', jsonErr.message);
@@ -95,26 +129,27 @@ app.post('/chat', async (req, res) => {
 
     const chatHtml = chatHistory.map(msg => {
       const style = msg.role === 'user' ? 'bg-gray-200 text-left' : 'bg-green-100 text-left';
-      return `<div class="my-2 p-3 rounded ${style}"><strong>${msg.role === 'user' ? '🙋‍♂️ 질문' : '🤖 GPT'}:</strong><br>${msg.content}</div>`;
+      const label = msg.role === 'user' ? t.user : t.gpt;
+      return `<div class="my-2 p-3 rounded ${style}"><strong>${label}:</strong><br>${msg.content}</div>`;
     }).join('');
 
     res.send(`
       <!DOCTYPE html>
-      <html lang="ko">
+      <html lang="${currentLang}">
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>GPT 세무 비서 대화형</title>
+          <title>${t.title}</title>
           <script src="https://cdn.tailwindcss.com"></script>
         </head>
         <body class="bg-gray-100 text-gray-900 font-sans p-6">
           <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
-            <h1 class="text-xl font-bold mb-4 text-center">GPT 세무 비서 (채팅형)</h1>
+            <h1 class="text-xl font-bold mb-4 text-center">${t.title}</h1>
             <div class="overflow-y-auto max-h-[500px] mb-6 scroll-smooth pr-1">${chatHtml}</div>
-            ${deductionSummary ? `<div class="mb-6 bg-blue-50 p-4 rounded-md">📊 <strong>계산 결과 요약</strong><br>${deductionSummary}</div>` : ''}
+            ${deductionSummary ? `<div class="mb-6 bg-blue-50 p-4 rounded-md">${t.summary}<br>${deductionSummary}</div>` : ''}
             <form method="POST" action="/chat" class="flex space-x-2">
-              <input type="text" name="userMessage" placeholder="질문을 입력하세요..." required class="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
-              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">전송</button>
+              <input type="text" name="userMessage" placeholder="${t.input}" required class="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">${t.send}</button>
             </form>
           </div>
         </body>
