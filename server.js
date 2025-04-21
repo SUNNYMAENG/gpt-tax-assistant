@@ -56,10 +56,10 @@ const i18n = {
 };
 
 const systemMessages = {
-  ko: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.\n...`,
-  ja: `あなたは日本の実務型税務アシスタントGPTです。ユーザーの質問目的に応じて、必要な条件を確認して処理してください。\n...`,
-  zh: `你是一个日本实务型税务助手GPT。请根据用户的问题目的，确认以下所需的条件后再处理：\n...`,
-  en: `You are a Japanese tax assistant GPT. Depending on the user's intent, confirm the necessary items below and respond accordingly.\n...`
+  ko: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.`,
+  ja: `あなたは日本の実務型税務アシスタントGPTです。ユーザーの質問目的に応じて、必要な条件を確認して処理してください。`,
+  zh: `你是一个日本实务型税务助手GPT。请根据用户的问题目的，确认以下所需的条件后再处理：`,
+  en: `You are a Japanese tax assistant GPT. Depending on the user's intent, confirm the necessary items below and respond accordingly.`
 };
 
 app.post('/chat', async (req, res) => {
