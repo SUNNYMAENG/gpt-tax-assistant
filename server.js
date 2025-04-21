@@ -110,7 +110,6 @@ app.get('/generate-pdf', (req, res) => {
   res.setHeader('Content-Type', 'application/pdf');
   doc.pipe(res);
 
-  // ✅ registerFont 적용
   doc.registerFont('kr', path.join(fontDir, 'NotoSansKR-VariableFont_wght.ttf'));
   doc.registerFont('jp', path.join(fontDir, 'NotoSansJP-VariableFont_wght.ttf'));
   doc.registerFont('zh', path.join(fontDir, 'NotoSansSC-VariableFont_wght.ttf'));
@@ -156,6 +155,39 @@ app.get('/generate-csv', async (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename="chat_log.csv"');
   res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
   res.send('\uFEFF' + csv);
+});
+
+// ✅ 급여 계산 API 추가
+app.post('/generate', (req, res) => {
+  const { type, amount, hasHealth, hasPension, hasEmpIns, dependents } = req.body;
+
+  if (!amount) {
+    return res.status(400).json({ error: 'amount is required' });
+  }
+
+  const gross = Number(amount);
+  const health = hasHealth ? gross * 0.03 : 0;
+  const pension = hasPension ? gross * 0.07 : 0;
+  const empIns = hasEmpIns ? gross * 0.003 : 0;
+  const tax = gross * 0.05 - (dependents * 1000);
+  const totalDeductions = health + pension + empIns + tax;
+  const net = gross - totalDeductions;
+
+  const result = {
+    gross: Math.round(gross),
+    health: Math.round(health),
+    pension: Math.round(pension),
+    empIns: Math.round(empIns),
+    tax: Math.round(tax),
+    net: Math.round(net)
+  };
+
+  res.json({
+    summary: `支給額: ¥${result.gross}\n健康保険: ¥${result.health}\n厚生年金: ¥${result.pension}\n雇用保険: ¥${result.empIns}\n所得税: ¥${result.tax}\n———————————————\n差引支給額: ¥${result.net}`,
+    netAmount: result.net,
+    deductions: result,
+    status: 'ok'
+  });
 });
 
 app.listen(PORT, () => {
