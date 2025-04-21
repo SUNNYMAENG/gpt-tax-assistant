@@ -35,6 +35,15 @@ const i18n = {
     summary: "📊 計算結果の概要",
     labels: ["支給額", "健康保険", "厚生年金", "雇用保険", "所得税", "差引支給額"]
   },
+  zh: {
+    title: "GPT 税务助理（聊天模式）",
+    input: "请输入您的问题...",
+    send: "发送",
+    user: "🙋‍♂️ 问题",
+    gpt: "🤖 GPT",
+    summary: "📊 计算结果概要",
+    labels: ["工资总额", "健康保险", "养老金", "就业保险", "所得税", "净支付"]
+  },
   en: {
     title: "GPT Tax Assistant (Chat Mode)",
     input: "Enter your question...",
@@ -46,14 +55,22 @@ const i18n = {
   }
 };
 
+const systemMessages = {
+  ko: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.\n...`,
+  ja: `あなたは日本の実務型税務アシスタントGPTです。ユーザーの質問目的に応じて、必要な条件を確認して処理してください。\n...`,
+  zh: `你是一个日本实务型税务助手GPT。请根据用户的问题目的，确认以下所需的条件后再处理：\n...`,
+  en: `You are a Japanese tax assistant GPT. Depending on the user's intent, confirm the necessary items below and respond accordingly.\n...`
+};
+
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.userMessage;
   chatHistory.push({ role: 'user', content: userMessage });
   console.log("📨 사용자 질문:", userMessage);
 
   const lang = req.headers['accept-language'] || 'ko';
-  const currentLang = lang.startsWith('ja') ? 'ja' : lang.startsWith('en') ? 'en' : 'ko';
+  const currentLang = lang.startsWith('ja') ? 'ja' : lang.startsWith('zh') ? 'zh' : lang.startsWith('en') ? 'en' : 'ko';
   const t = i18n[currentLang];
+  const systemPrompt = systemMessages[currentLang];
 
   const apiKey = process.env.OPENAI_API_KEY;
   let gptReply = '';
@@ -65,33 +82,7 @@ app.post('/chat', async (req, res) => {
       {
         model: "gpt-3.5-turbo",
         messages: [
-          {
-            role: "system",
-            content: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.
-
-📌 항목별 조건 요구사항:
-- 급여명세서: 고용형태, 거주지, 건강보험 여부, 연금가입 여부, 고용보험 여부, 부양가족 수, 급여액
-- 퇴직금 계산: 고용형태, 입사일, 퇴사일, 마지막 급여
-- 연말정산: 부양가족 수, 보험료 납입 여부, 기부금 여부, 연간 총소득
-- 마이넘버 서식: 고용형태, 외국인 여부, 주민번호 유무
-- 법인세 신고: 결산월, 사업소득, 비용 항목, 세무대리인 유무
-- 부가세 신고: 과세기간, 간이/일반 여부, 매출/매입 내역
-- 원천세 신고: 인건비 지급월, 지급총액, 인원수
-- 소득세 신고: 종합소득 항목, 경비, 각종 공제 여부
-
-❗조건이 부족한 경우에는 다음과 같이 자연스럽게 유도하십시오:
-"정확한 산출을 위해 다음 항목들을 확인해 주세요:\n① 고용형태 (정직원 / 프리랜서 / 일용직 / 외국인)\n② 일본 거주 여부 (예/아니오)\n③ 건강보험 가입 여부\n④ 연금 가입 여부\n⑤ 고용보험 적용 여부\n⑥ 부양가족 수\n⑦ 금액 (예: 월 급여, 퇴직금 등)"
-
-정보가 충분한 경우 아래 JSON 형식으로 응답하십시오:
-{
-  "type": "정직원",
-  "amount": 2500000,
-  "hasHealth": true,
-  "hasPension": true,
-  "hasEmpIns": true,
-  "dependents": 0
-}`
-          },
+          { role: "system", content: systemPrompt },
           ...chatHistory
         ]
       },
