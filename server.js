@@ -78,7 +78,16 @@ app.post('/chat', async (req, res) => {
       try {
         const condition = JSON.parse(jsonMatch[0]);
         const generateResponse = await axios.post('http://localhost:3000/generate', condition);
-        deductionSummary = generateResponse.data.summary;
+        const result = generateResponse.data;
+        deductionSummary = `
+        <ul class="text-sm leading-6">
+          <li>💰 <strong>지급액:</strong> ¥${result.deductions.gross}</li>
+          <li>🩺 건강보험: ¥${result.deductions.health}</li>
+          <li>💼 연금: ¥${result.deductions.pension}</li>
+          <li>🛡️ 고용보험: ¥${result.deductions.empIns}</li>
+          <li>💸 소득세: ¥${result.deductions.tax}</li>
+          <li>✅ <strong>차감 후 수령액:</strong> ¥${result.deductions.net}</li>
+        </ul>`;
       } catch (jsonErr) {
         console.warn('⚠️ 조건 파싱 실패:', jsonErr.message);
       }
@@ -101,8 +110,8 @@ app.post('/chat', async (req, res) => {
         <body class="bg-gray-100 text-gray-900 font-sans p-6">
           <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
             <h1 class="text-xl font-bold mb-4 text-center">GPT 세무 비서 (채팅형)</h1>
-            <div class="overflow-y-auto max-h-[500px] mb-6">${chatHtml}</div>
-            ${deductionSummary ? `<div class="mb-6 bg-blue-50 p-3 rounded-md">📊 <strong>계산 결과 요약</strong><br>${deductionSummary}</div>` : ''}
+            <div class="overflow-y-auto max-h-[500px] mb-6 scroll-smooth pr-1">${chatHtml}</div>
+            ${deductionSummary ? `<div class="mb-6 bg-blue-50 p-4 rounded-md">📊 <strong>계산 결과 요약</strong><br>${deductionSummary}</div>` : ''}
             <form method="POST" action="/chat" class="flex space-x-2">
               <input type="text" name="userMessage" placeholder="질문을 입력하세요..." required class="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
               <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">전송</button>
