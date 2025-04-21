@@ -33,7 +33,7 @@ app.post('/chat', async (req, res) => {
             content: `당신은 일본 실무형 세무비서 GPT입니다. 사용자의 질문 목적에 따라 아래 항목 중 필요한 조건만 확인하여 처리하세요.
 
 📌 항목별 조건 요구사항:
-- 급여명세서: 고용형태, 거주지, 건강보험 여부, 부양가족 수, 급여액
+- 급여명세서: 고용형태, 거주지, 건강보험 여부, 연금가입 여부, 고용보험 여부, 부양가족 수, 급여액
 - 퇴직금 계산: 고용형태, 입사일, 퇴사일, 마지막 급여
 - 연말정산: 부양가족 수, 보험료 납입 여부, 기부금 여부, 연간 총소득
 - 마이넘버 서식: 고용형태, 외국인 여부, 주민번호 유무
@@ -42,14 +42,10 @@ app.post('/chat', async (req, res) => {
 - 원천세 신고: 인건비 지급월, 지급총액, 인원수
 - 소득세 신고: 종합소득 항목, 경비, 각종 공제 여부
 
-❗조건이 부족한 경우에는 다음 예시처럼 질문하세요:
-① 고용형태 (정직원 / 프리랜서 / 외국인)?
-② 일본 거주 여부?
-③ 건강보험 가입 여부?
-④ 부양가족 있음?
-⑤ 과세기간/신고유형/결산월 등 항목별 추가 질문
+❗조건이 부족한 경우에는 다음과 같이 자연스럽게 유도하십시오:
+"정확한 산출을 위해 다음 항목들을 확인해 주세요:\n① 고용형태 (정직원 / 프리랜서 / 일용직 / 외국인)\n② 일본 거주 여부 (예/아니오)\n③ 건강보험 가입 여부\n④ 연금 가입 여부\n⑤ 고용보험 적용 여부\n⑥ 부양가족 수\n⑦ 금액 (예: 월 급여, 퇴직금 등)"
 
-그 후 가능한 경우 아래 JSON으로 응답하세요:
+정보가 충분한 경우 아래 JSON 형식으로 응답하십시오:
 {
   "type": "정직원",
   "amount": 2500000,
@@ -105,7 +101,7 @@ app.post('/chat', async (req, res) => {
               <p class="mt-1 p-3 bg-green-50 rounded-md whitespace-pre-wrap">${gptReply}</p>
             </div>
             ${deductionSummary ? `<div class="mb-6">
-              <p class="text-sm font-semibold text-gray-700">실지급액 계산 결과</p>
+              <p class="text-sm font-semibold text-gray-700">계산 결과 요약</p>
               <p class="mt-1 p-3 bg-blue-50 rounded-md whitespace-pre-wrap">${deductionSummary}</p>
             </div>` : ''}
             <div class="text-center space-x-4 mt-6">
