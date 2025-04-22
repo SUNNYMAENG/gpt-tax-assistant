@@ -15,9 +15,21 @@ function handleGptReply(gptResponse) {
       }
 
       // 누락 보정
-      if (jsonData.dependents === "なし" || jsonData.dependents === false) jsonData.dependents = 0;
-      if (jsonData.dependents === "あり" || jsonData.dependents === true) jsonData.dependents = 1;
-      if (!jsonData.dependents && jsonData.dependents !== 0) jsonData.dependents = 0;
+      const dep = jsonData.dependents;
+      if (typeof dep === "string") {
+        if (dep.includes("없음") || dep.includes("なし") || dep === "X" || dep === "0명") {
+          jsonData.dependents = 0;
+        } else if (dep.includes("있음") || dep.includes("あり") || dep === "O" || dep === "1명") {
+          jsonData.dependents = 1;
+        } else {
+          const parsed = parseInt(dep);
+          jsonData.dependents = isNaN(parsed) ? 0 : parsed;
+        }
+      } else if (dep === false) {
+        jsonData.dependents = 0;
+      } else if (dep === true) {
+        jsonData.dependents = 1;
+      }
 
       fetch('/generate', {
         method: 'POST',
