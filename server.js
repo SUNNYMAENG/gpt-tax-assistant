@@ -168,14 +168,24 @@ app.get('/chat', (req, res) => {
 });
 app.post('/generate', (req, res) => {
   const data = req.body;
+
+  // 🧠 dependents 예외 처리 (문자열일 경우 숫자로 변환)
+  if (typeof data.dependents === 'string') {
+    const d = data.dependents.trim();
+    if (d === 'なし' || d === '없음' || d === 'X') data.dependents = 0;
+    else if (d === 'あり' || d === 'O' || d === '있음') data.dependents = 1;
+    else {
+      const parsed = parseInt(d);
+      data.dependents = isNaN(parsed) ? 0 : parsed;
+    }
+  }
+
   const gross = data.amount;
 
-  // ✅ 공제 항목 계산
   const health = data.hasHealth ? Math.round(gross * 0.0984) : 0;
   const pension = data.hasPension ? Math.round(gross * 0.0915) : 0;
   const empIns = data.hasEmpIns ? Math.round(gross * 0.006) : 0;
 
-  // ✅ 간이 소득세 (5%) + 주민세 (10%) 예시
   const tax = Math.round(gross * 0.05);
   const residentTax = Math.round(gross * 0.10);
 
