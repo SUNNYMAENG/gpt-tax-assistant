@@ -1,4 +1,4 @@
-// ✅ 언어 감지 및 질문 흐름 개선 + 세무 GPT 운영 지침 반영 (수정본)
+// ✅ 언어 감지 및 질문 흐름 개선 + 세무 GPT 운영 지침 반영 (최종 정정본)
 // 📁 적용 대상: server.js
 
 /*
@@ -164,10 +164,10 @@ app.post('/chat', async (req, res) => {
     }
 });
 
-// 불필요한 GET 요청 처리 제거
-// app.get('/chat', (req, res) => {
-//     res.redirect('/');
-// });
+// GET 요청 처리를 다시 추가
+app.get('/chat', (req, res) => {
+    res.redirect('/'); // 또는 원하는 다른 페이지로 리다이렉트
+});
 
 app.post('/generate', (req, res) => {
     const data = req.body;
