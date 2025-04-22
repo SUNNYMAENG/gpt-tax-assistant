@@ -19,15 +19,21 @@ function handleGptReply(gptResponse) {
         },
         body: JSON.stringify(jsonData)
       })
-        .then(res => {
-          if (!res.ok) throw new Error("/generate 응답 오류: " + res.status);
-          return res.blob();
+        .then(res => res.json())
+        .then(result => {
+          const d = result.deductions;
+          const summary = `💴 실수령액 계산 결과\n\n` +
+            `• 지급액: ¥${d.gross.toLocaleString()}\n` +
+            `• 건강보험: ¥${d.health.toLocaleString()}\n` +
+            `• 연금: ¥${d.pension.toLocaleString()}\n` +
+            `• 고용보험: ¥${d.empIns.toLocaleString()}\n` +
+            `• 소득세: ¥${d.tax.toLocaleString()}\n` +
+            `• 주민세: ¥${d.residentTax.toLocaleString()}\n` +
+            `✅ 실수령액: ¥${d.net.toLocaleString()}`;
+
+          appendToChat("GPT", summary);
         })
-        .then(blob => {
-          const url = URL.createObjectURL(blob);
-          window.open(url); // 새 탭으로 결과 문서 열기
-        })
-        .catch(err => console.error('📛 문서 생성 실패:', err));
+        .catch(err => console.error('📛 계산 실패:', err));
 
     } catch (e) {
       console.warn('⚠️ JSON 파싱 실패:', e);
