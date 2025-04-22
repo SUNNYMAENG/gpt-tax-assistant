@@ -43,11 +43,12 @@
           body: JSON.stringify({ userMessage: message })
         });
 
-        const html = await response.text();
-        document.open();
-        document.write(html);
-        document.close();
-        handleUserMessageFromServer(html); // ✅ GPT 응답 분석 및 계산 실행
+      const html = await response.text();
+      document.open();
+      document.write(html);
+      document.close();
+      handleUserMessageFromServer(html); // ✅ 요 한 줄만 추가!
+
 
       });
     </script><script src="/chat.js"></script>
