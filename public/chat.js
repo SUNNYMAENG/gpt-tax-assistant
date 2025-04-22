@@ -7,14 +7,22 @@ function handleGptReply(gptResponse) {
     try {
       const jsonData = JSON.parse(jsonMatch[0]);
 
-      fetch('https://gpt-tax-assistant.onrender.com/generate', {
+      // 누락 보정
+      if (jsonData.dependents === "なし") jsonData.dependents = 0;
+      if (jsonData.dependents === "あり") jsonData.dependents = 1;
+      if (!jsonData.dependents) jsonData.dependents = 0;
+
+      fetch('/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(jsonData)
       })
-        .then(res => res.blob())
+        .then(res => {
+          if (!res.ok) throw new Error("/generate 응답 오류: " + res.status);
+          return res.blob();
+        })
         .then(blob => {
           const url = URL.createObjectURL(blob);
           window.open(url); // 새 탭으로 결과 문서 열기
@@ -36,10 +44,9 @@ async function handleUserMessage(userInput) {
   handleGptReply(gptResponse);                          // ✅ GPT 응답에서 JSON 감지 후 /generate 호출
 }
 
-// 예시용 GPT 응답 시뮬레이터 함수 (필요 시 제거 가능)
+// 실제 GPT API를 연동할 수 있는 구조로 교체 필요
 async function getGptReply(message) {
-  // 실제 GPT API 연결 부분에 맞게 수정 필요
-  // 여기선 예시 JSON 포함 응답 리턴
+  // 테스트용 고정 JSON 반환
   return `{
     "type": "정직원",
     "amount": 2500000,
@@ -53,4 +60,3 @@ async function getGptReply(message) {
 
 // 예시 실행 (실제에선 사용자 입력에 따라 호출)
 handleUserMessage("급여대장 만들어줘");
-
