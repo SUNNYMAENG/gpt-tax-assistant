@@ -10,7 +10,7 @@ function handleGptReply(gptResponse) {
       // 누락 보정
       if (jsonData.dependents === "なし") jsonData.dependents = 0;
       if (jsonData.dependents === "あり") jsonData.dependents = 1;
-      if (!jsonData.dependents) jsonData.dependents = 0;
+      if (!jsonData.dependents && jsonData.dependents !== 0) jsonData.dependents = 0;
 
       fetch('/generate', {
         method: 'POST',
