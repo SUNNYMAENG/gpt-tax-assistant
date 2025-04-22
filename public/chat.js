@@ -5,7 +5,16 @@ function handleGptReply(gptResponse) {
   const jsonMatch = gptResponse.match(/{[\s\S]*}/);
   if (jsonMatch) {
     try {
-      const jsonData = JSON.parse(jsonMatch[0]);
+  const jsonData = JSON.parse(jsonMatch[0]);
+
+  // 💡 금액 문자열 보정
+  if (typeof jsonData.amount === "string") {
+    const amountStr = jsonData.amount.replace(/[^\d]/g, "");
+    const amountNum = parseInt(amountStr, 10);
+    jsonData.amount = isNaN(amountNum) ? 0 : amountNum;
+  }
+
+  // 이하 생략...
 
       // 누락 보정
       if (jsonData.dependents === "なし") jsonData.dependents = 0;
