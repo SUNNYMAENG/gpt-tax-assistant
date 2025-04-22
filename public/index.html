@@ -47,7 +47,8 @@
         document.open();
         document.write(html);
         document.close();
-        handleGptReply(html); 
+        handleUserMessageFromServer(html); // ✅ GPT 응답 분석 및 계산 실행
+
       });
     </script><script src="/chat.js"></script>
   </body>
