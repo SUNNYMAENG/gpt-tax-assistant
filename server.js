@@ -73,7 +73,7 @@ app.post('/chat', async (req, res) => {
 4. 扶養家族の有無（あり／なし）
 
 上記のいずれかが不足している場合は、
-「ご入力いただいていない項目があります。より正確な結果をご希望の場合は、以下の情報をご入力ください：...」と案内してください。
+「より正確な結果をご希望の場合は、以下の情報をご入力ください：...」と案内してください。
 
 それでも条件がすべて揃わない場合は、以下の一般的な仮定で計算を進めてください：
 - 雇用形態：正社員
@@ -165,6 +165,36 @@ app.post('/chat', async (req, res) => {
 
 app.get('/chat', (req, res) => {
   res.redirect('/');
+});
+app.post('/generate', (req, res) => {
+  const data = req.body;
+  const gross = data.amount;
+
+  // ✅ 공제 항목 계산
+  const health = data.hasHealth ? Math.round(gross * 0.0984) : 0;
+  const pension = data.hasPension ? Math.round(gross * 0.0915) : 0;
+  const empIns = data.hasEmpIns ? Math.round(gross * 0.006) : 0;
+
+  // ✅ 간이 소득세 (5%) + 주민세 (10%) 예시
+  const tax = Math.round(gross * 0.05);
+  const residentTax = Math.round(gross * 0.10);
+
+  const totalDeductions = health + pension + empIns + tax + residentTax;
+  const net = gross - totalDeductions;
+
+  const result = {
+    deductions: {
+      gross,
+      health,
+      pension,
+      empIns,
+      tax,
+      residentTax,
+      net
+    }
+  };
+
+  return res.json(result);
 });
 
 app.listen(PORT, () => {
