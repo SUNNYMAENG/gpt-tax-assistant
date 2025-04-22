@@ -63,26 +63,10 @@ function handleGptReply(gptResponse) {
   }
 }
 
-// 사용자의 메시지를 처리하고 GPT 응답을 받은 후 자동 처리 연결
-async function handleUserMessage(userInput) {
-  const gptResponse = await getGptReply(userInput);     // GPT 응답 받기
-  appendToChat("GPT", gptResponse);                     // 사용자 화면에 응답 표시
-  handleGptReply(gptResponse);                          // ✅ GPT 응답에서 JSON 감지 후 /generate 호출
+// ✅ 실제 GPT 응답을 받아 자동 처리하는 함수 (외부에서 호출)
+function handleUserMessageFromServer(gptResponse) {
+  appendToChat("GPT", gptResponse);
+  handleGptReply(gptResponse);
 }
 
-// 실제 GPT API를 연동할 수 있는 구조로 교체 필요
-async function getGptReply(message) {
-  // 테스트용 고정 JSON 반환
-  return `{
-    "type": "정직원",
-    "amount": 2500000,
-    "hasHealth": true,
-    "hasPension": true,
-    "hasEmpIns": true,
-    "dependents": 0,
-    "lang": "ko"
-  }`;
-}
-
-// 예시 실행 (실제에선 사용자 입력에 따라 호출)
-handleUserMessage("급여대장 만들어줘");
+// 👇 테스트용 getGptReply 및 자동 실행 제거됨
