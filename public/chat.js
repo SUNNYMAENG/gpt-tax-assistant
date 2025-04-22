@@ -2,10 +2,10 @@
 
 // GPT 응답을 받아 자동으로 /generate에 POST 요청 보내는 함수
 function handleGptReply(gptResponse) {
-  const jsonMatch = gptResponse.match(/```json\s*({[\s\S]*?})\s*```|({[\s\S]*})/);
+  const jsonMatch = gptResponse.match(/```json\s*({[\s\S]*?})\s*```|```([\s\S]*?)```|({[\s\S]*})/);
   if (jsonMatch) {
     try {
-      const rawJson = jsonMatch[1] || jsonMatch[2];
+      const rawJson = jsonMatch[1] || jsonMatch[2] || jsonMatch[3];
       const jsonData = JSON.parse(rawJson);
 
       // 금액 문자열 보정
